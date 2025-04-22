@@ -2,7 +2,6 @@
 
 $input = json_decode(file_get_contents('php://input'), true);
 
-echo json_encode(['message' => '  successfully you are in']);
 $errors = [];
 
 if (empty($input['product_id'])) {
