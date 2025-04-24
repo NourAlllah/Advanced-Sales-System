@@ -38,7 +38,7 @@ function processOrder(PDO $db, array $order, array &$errors, array &$savedOrders
     $itemErrors = validateOrder($order);
     if (!empty($itemErrors)) {
         $errors[] = ['product_id' => $order['product_id'] ?? 'N/A', 'errors' => $itemErrors];
-        return; // Exit the function for this order
+        return; 
     }
 
     $product_id = $order['product_id'];
@@ -48,7 +48,7 @@ function processOrder(PDO $db, array $order, array &$errors, array &$savedOrders
 
     if (!productExists($db, $product_id)) {
         $errors[] = ['product_id' => $product_id, 'errors' => ['Invalid product_id: Product not found']];
-        return; // Exit the function for this order
+        return; 
     }
 
     try {
@@ -67,12 +67,16 @@ function processOrder(PDO $db, array $order, array &$errors, array &$savedOrders
     }
 }
 
-if (is_array($input)) {
+if (isset($input[0]) && is_array($input[0])) {
     foreach ($input as $order) {
         processOrder($db, $order, $errors, $savedOrders);
     }
-} else { 
+} else if(is_array($input)) { 
     processOrder($db, $input, $errors, $savedOrders);
+}else {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid input format. Expecting JSON object or array of objects.']);
+    exit;
 }
 
 if (!empty($errors)) {
