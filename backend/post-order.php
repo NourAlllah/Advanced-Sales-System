@@ -1,6 +1,7 @@
 <?php
 
 require_once 'db.php';
+date_default_timezone_set('Africa/Cairo');
 
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -17,12 +18,6 @@ function validateOrder(array $order): array
     if (!isset($order['quantity']) || !is_numeric($order['quantity']) || $order['quantity'] <= 0) {
         $errors[] = 'Invalid quantity';
     }
-    if (!isset($order['price']) || !is_numeric($order['price']) || $order['price'] < 0) {
-        $errors[] = 'Invalid price';
-    }
-    if (empty($order['date']) || !strtotime($order['date'])) {
-        $errors[] = 'Invalid or missing date (must be a valid date string)';
-    }
     return $errors;
 }
 
@@ -32,6 +27,15 @@ function productExists(PDO $db, string $productId): bool
     $stmt->bindParam(':id', $productId);
     $stmt->execute();
     return (bool) $stmt->fetchColumn();
+}
+
+function getProductPrice(PDO $db, string $productId): float
+{
+    $stmt = $db->prepare("SELECT price FROM products WHERE id = :id");
+    $stmt->bindParam(':id', $productId);
+    $stmt->execute();
+    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+    return (float) ($product['price'] ?? 0);
 }
 
 function processOrder(PDO $db, array $order, array &$errors, array &$savedOrders, array &$enrichedOrders): void
@@ -44,16 +48,19 @@ function processOrder(PDO $db, array $order, array &$errors, array &$savedOrders
 
     $product_id = $order['product_id'];
     $quantity = (int) $order['quantity'];
-    $price = (float) $order['price'];
-    $date = date('Y-m-d H:i:s', strtotime($order['date']));
+    // Retrieve the price from the products table
+    $price = getProductPrice($db, $product_id);
+    // Get the current date and time for the order
+    $date = date('Y-m-d H:i:s');
 
-
+    // Check if the product exists in the database
     if (!productExists($db, $product_id)) {
         $errors[] = ['product_id' => $product_id, 'errors' => ['Invalid product_id: Product not found']];
         return;
     }
 
     try {
+        // Insert the order into the database
         $stmt = $db->prepare("INSERT INTO orders (product_id, quantity, price, date) VALUES (:product_id, :quantity, :price, :date)");
         $stmt->execute([
             ':product_id' => $product_id,
@@ -63,10 +70,12 @@ function processOrder(PDO $db, array $order, array &$errors, array &$savedOrders
         ]);
         $savedOrders[] = ['product_id' => $product_id, 'message' => 'Order item saved successfully'];
 
+        // Get the product name for the enriched order
         $stmt = $db->prepare("SELECT name FROM products WHERE id = :id");
         $stmt->execute([':id' => $product_id]);
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        // Prepare the enriched order
         $enrichedOrders[] = [
             'product_id' => $product_id,
             'product_name' => $product['name'],

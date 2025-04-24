@@ -1,6 +1,7 @@
 <?php
 
 require_once 'db.php';
+date_default_timezone_set('Africa/Cairo');
 
 function getTotalRevenue(PDO $db): float {
     $stmt = $db->query("SELECT SUM(price * quantity) FROM orders");
@@ -45,8 +46,7 @@ function getOrdersLastMinute(PDO $db, string $fromTime): int {
 }
 
 try {
-    $now = time();
-    $oneMinuteAgo = date('Y-m-d H:i:s', $now - 60);
+    $oneMinuteAgo = date('Y-m-d H:i:s', time() - 60);
 
     $response = [
         'total_revenue' => getTotalRevenue($db),

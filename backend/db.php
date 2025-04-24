@@ -37,7 +37,7 @@ try {
             product_id TEXT NOT NULL,
             quantity INTEGER NOT NULL,
             price REAL NOT NULL,
-            date TEXT NOT NULL
+            date DATETIME
         )
     ");
 } catch (PDOException $e) {
