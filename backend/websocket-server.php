@@ -94,6 +94,7 @@ $webServer = new IoServer(
 $tcpServer = new ReactSocket('127.0.0.1:9000', $loop);
 $tcpServer->on('connection', function (ReactConnection $conn) use ($notifier) {
     $conn->on('data', function ($data) use ($conn, $notifier) {
+
         $payload = json_decode($data, true);
 
         if (!$payload || !isset($payload['type'])) {

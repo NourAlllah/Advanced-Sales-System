@@ -41,8 +41,8 @@
 
     <div class="analytics-box">
         <h2>📊 Live Analytics</h2>
-        <p><strong>Total Revenue:</strong> $<span id="totalRevenue">0.00</span></p>
-        <p><strong>Revenue (Last Minute):</strong> $<span id="lastMinuteRevenue">0.00</span></p>
+        <p><strong>Total Revenue:</strong> <span id="totalRevenue">0.00</span>LE</p>
+        <p><strong>Revenue (Last Minute):</strong> <span id="lastMinuteRevenue">0.00</span>LE</p>
         <p><strong>Orders (Last Minute):</strong> <span id="lastMinuteOrders">0</span></p>
         <div class="top-products">
             <strong>Top Products:</strong>
@@ -54,26 +54,31 @@
         const socket = new WebSocket("ws://localhost:8080");
 
         socket.onopen = () => {
-            console.log("✅ Connected");
+            console.log("✅ Connected to WebSocket");
         };
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            const list = document.getElementById("notifications");
+            console.log("📨 Message received:", data);
 
             if (data.type === 'new_order') {
+                console.log("🔔 New order data:", data.order);
+                const list = document.getElementById("notifications");
                 const item = document.createElement("li");
                 item.textContent = `📦 ${data.message}`;
                 list.appendChild(item);
             }
 
             if (data.type === 'analytics_update') {
-                const analytics = data.analytics;
-                if (!analytics) return;
+                console.log("📊 Analytics update received:", data.analytics);
 
-                document.getElementById("totalRevenue").textContent = analytics.total_revenue.toFixed(2);
-                document.getElementById("lastMinuteRevenue").textContent = analytics.revenue_last_minute.toFixed(2);
-                document.getElementById("lastMinuteOrders").textContent = analytics.orders_last_minute;
+                const analytics = data.analytics;
+                document.getElementById("totalRevenue").textContent =
+                    analytics.total_revenue.toFixed(2);
+                document.getElementById("lastMinuteRevenue").textContent =
+                    analytics.revenue_last_minute.toFixed(2);
+                document.getElementById("lastMinuteOrders").textContent =
+                    analytics.orders_last_minute;
 
                 const topProductsList = document.getElementById("topProducts");
                 topProductsList.innerHTML = '';
@@ -85,8 +90,9 @@
             }
         };
 
+        
         socket.onclose = () => {
-            console.log("❌ Disconnected");
+            console.log("❌ Disconnected from WebSocket");
         };
     </script>
 

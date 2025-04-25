@@ -115,7 +115,9 @@ if (!empty($enrichedOrders)) {
     }
 
     // ✅ FETCH ANALYTICS SAFELY USING CURL
-    $ch = curl_init("http://localhost/get-analytics.php");
+    //$ch = curl_init("http://localhost/get-analytics.php");
+    $ch = curl_init("http://localhost/advanced-sales-system/backend/get-analytics.php");
+
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $analytics = curl_exec($ch);
     curl_close($ch);
@@ -134,8 +136,12 @@ if (!empty($enrichedOrders)) {
         } else {
             error_log("Failed to decode analytics JSON.");
         }
+        error_log("✅ CURL analytics payload: $analytics");
+
     } else {
         error_log("Failed to fetch analytics from analytics.php");
+        error_log("❌ CURL failed fetching analytics: $error");
+
     }
 }
 
